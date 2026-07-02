@@ -1,0 +1,7 @@
+﻿services:
+  docsearch.webapi:
+    image: docsearch.webapi
+    build:
+      context: .
+      dockerfile: src/DocSearch.WebApi/Dockerfile
+
