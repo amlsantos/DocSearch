@@ -1,5 +1,6 @@
 using DocSearch.WebApi.Application.Features.Ingestion.Commands;
 using DocSearch.WebApi.Application.Features.Ingestion.Queries;
+using DocSearch.WebApi.Application.Features.Retrieval.Queries;
 using DocSearch.WebApi.Presentation.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -45,21 +46,27 @@ public class DocumentsController : ControllerBase
             return StatusCode(500, new { error = "Failed to ingest documents.", details = ex.Message });
         }
     }
-
-    [HttpGet("getAll")]
-    public async Task<IActionResult> GetAllDocuments()
+    
+    [HttpGet("retrieve")]
+    public async Task<IActionResult> RetrieveDocuments([FromQuery] string question)
     {
-        var query = new GetAllDocumentsQuery();
-        var existingDocuments = await _sender.Send(query);
-        
-        var result = existingDocuments.Select(d => new DocumentDto
+        if (string.IsNullOrWhiteSpace(question))
         {
-            Id = d.Id,
-            FileName = d.FileName,
-            SourcePath = d.SourcePath,
-            LastModifiedUtc = d.LastModifiedUtc
+            return BadRequest(new { error = "Search term 'q' cannot be empty." });
+        }
+
+        var query = new RetrieveDocumentsQuery(question);
+        var searchResults = await _sender.Send(query);
+
+        var result = searchResults.Select(result => new SearchResultDto
+        {
+            ChunkId = result.Chunk.Id,
+            DocumentId = result.Chunk.DocumentId,
+            Content = result.Chunk.Content,
+            OrderIndex = result.Chunk.OrderIndex,
+            Rank = result.Rank
         }).ToList();
-        
+
         return Ok(result);
     }
 }

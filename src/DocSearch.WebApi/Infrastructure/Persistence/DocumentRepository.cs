@@ -23,4 +23,23 @@ public class DocumentRepository : IDocumentRepository
         await _context.Documents.AddRangeAsync(documents, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+    
+    public async Task<IList<(DocumentChunk Chunk, float Rank)>> RetrieveChunksAsync(string searchTerm, CancellationToken cancellationToken = default)
+    {
+        var results = await _context.DocumentChunks
+            .Where(c => EF.Property<NpgsqlTypes.NpgsqlTsVector>(c, "SearchVector")
+                         .Matches(EF.Functions.WebSearchToTsQuery("english", searchTerm)))
+            .Select(c => new 
+            {
+                Chunk = c,
+                Rank = EF.Property<NpgsqlTypes.NpgsqlTsVector>(c, "SearchVector")
+                        .Rank(EF.Functions.WebSearchToTsQuery("english", searchTerm))
+            })
+            .OrderByDescending(x => x.Rank)
+            .Take(10)
+            .ToListAsync(cancellationToken);
+
+        // Convert the anonymous type to the required Tuple type
+        return results.Select(x => (x.Chunk, x.Rank)).ToList();
+    }
 }
