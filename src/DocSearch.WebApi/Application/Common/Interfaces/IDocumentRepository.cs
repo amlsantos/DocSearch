@@ -4,7 +4,6 @@ namespace DocSearch.WebApi.Application.Common.Interfaces;
 
 public interface IDocumentRepository
 {
-    Task ReplaceAllDocumentsAsync(IEnumerable<Document> documents, CancellationToken cancellationToken = default);
-    
     Task<IList<Document>> GetAllDocumentsAsync();
+    Task InsertDocumentsAsync(IEnumerable<Document> documents, CancellationToken cancellationToken = default);
 }

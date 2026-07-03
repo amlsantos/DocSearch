@@ -13,17 +13,14 @@ public class DocumentRepository : IDocumentRepository
         _context = context;
     }
     
-    public async Task ReplaceAllDocumentsAsync(IEnumerable<Document> documents, CancellationToken cancellationToken = default)
-    {
-        // 1. Clear existing data to allow clean re-ingestion
-        await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"DocumentChunks\", \"Documents\" CASCADE", cancellationToken);
-        // 2. Insert new documents (EF Core automatically handles chunk insertion via navigation properties)
-        await _context.Documents.AddRangeAsync(documents, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
     public async Task<IList<Document>> GetAllDocumentsAsync()
     {
         return await _context.Documents.ToListAsync();
+    }
+
+    public async Task InsertDocumentsAsync(IEnumerable<Document> documents, CancellationToken cancellationToken = default)
+    {
+        await _context.Documents.AddRangeAsync(documents, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
