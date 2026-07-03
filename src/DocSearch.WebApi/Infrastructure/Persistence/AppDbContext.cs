@@ -31,8 +31,16 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("DocumentChunks");
             entity.HasKey(c => c.Id);
-            entity.Property(c => c.Content).IsRequired(); // PostgreSQL Full-Text Search index will be applied here later
+            entity.Property(c => c.Content).IsRequired();
             entity.Property(c => c.OrderIndex).IsRequired();
+            
+            // Full-Text Search Vector configured as a Shadow Property
+            // This keeps the Domain layer pure (no Npgsql dependencies in DocumentChunk.cs)
+            entity.Property<NpgsqlTypes.NpgsqlTsVector>("SearchVector")
+                .HasComputedColumnSql("to_tsvector('english', \"Content\")", stored: true);
+
+            entity.HasIndex("SearchVector")
+                .HasMethod("GIN");
         });
     }
 }
