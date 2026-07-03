@@ -5,11 +5,12 @@ public class Document
     public Guid Id { get; private set; }
     public string FileName { get; private set; }
     public string SourcePath { get; private set; }
+    public DateTime LastModifiedUtc { get; private set; }
     
     private readonly List<DocumentChunk> _chunks = new();
     public IReadOnlyCollection<DocumentChunk> Chunks => _chunks.AsReadOnly();
     
-    public Document(string fileName, string sourcePath)
+    public Document(string fileName, string sourcePath, DateTime lastModifiedUtc)
     {
         if (string.IsNullOrWhiteSpace(fileName)) 
             throw new ArgumentException("The name of the file is mandatory", nameof(fileName));
@@ -17,6 +18,7 @@ public class Document
         Id = Guid.NewGuid();
         FileName = fileName;
         SourcePath = sourcePath;
+        LastModifiedUtc = lastModifiedUtc;
     }
     
     public void AddChunk(string content)
