@@ -33,6 +33,9 @@ namespace DocSearch.WebApi.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("SourcePath")
                         .IsRequired()
                         .HasColumnType("text");
