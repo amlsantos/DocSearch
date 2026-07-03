@@ -1,41 +1,63 @@
-var builder = WebApplication.CreateBuilder(args);
+using DocSearch.WebApi.Application.Common.Interfaces;
+using DocSearch.WebApi.Application.Features.Ingestion;
+using DocSearch.WebApi.Infrastructure.Persistence;
+using DocSearch.WebApi.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+namespace DocSearch.WebApi;
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+public static class Program
 {
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    public static void Main(string[] args)
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
+        var builder = WebApplication.CreateBuilder(args);
+        ConfigureServices(builder.Services, builder.Configuration);
+        
+        var app = builder.Build();
+        
+        ApplyMigrations(app);
+        
+        ConfigurePipeline(app);
+        
+        app.Run();
+    }
 
-app.Run();
+    static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    {
+        // A. Add Controllers Support
+        services.AddControllers();
+    
+        // B. Add Swagger/OpenAPI
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        
+        // C. Add Database Context (PostgreSQL)
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        
+        // D. Add Application & Infrastructure Services (Dependency Injection)
+        services.AddScoped<IDocumentReader, MarkdownDocumentReader>();
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<DocumentIngestionService>();
+    }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    static void ConfigurePipeline(WebApplication app)
+    {
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+        app.UseHttpsRedirection();
+        app.UseAuthorization();
+        app.MapControllers();
+    }
+    
+    static void ApplyMigrations(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+    }
 }
