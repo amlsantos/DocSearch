@@ -38,7 +38,9 @@ public static class Program
         // D. Add Application & Infrastructure Services (Dependency Injection)
         services.AddScoped<IDocumentReader, MarkdownDocumentReader>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
-        services.AddScoped<DocumentIngestionService>();
+        
+        // E. Add MediatR
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     }
 
     static void ConfigurePipeline(WebApplication app)
