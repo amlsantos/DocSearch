@@ -24,6 +24,13 @@ public class RetrieveDocumentsQueryHandler : IRequestHandler<RetrieveDocumentsQu
             return new List<(DocumentChunk, float)>();
         }
 
-        return await _repository.RetrieveChunksAsync(request.Term, cancellationToken);
+        // Convert natural language to a forgiving "OR" query for PostgreSQL Full-Text Search
+        var searchKeywords = string.Join(" OR ", request.Term
+            .Split(new[] { ' ', '?', '.', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => w.Length > 2));
+            
+        var searchTerm = string.IsNullOrWhiteSpace(searchKeywords) ? request.Term : searchKeywords;
+
+        return await _repository.RetrieveChunksAsync(searchTerm, cancellationToken);
     }
 }

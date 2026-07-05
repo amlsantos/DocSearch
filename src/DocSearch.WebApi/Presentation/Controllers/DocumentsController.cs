@@ -30,15 +30,16 @@ public class DocumentsController : ControllerBase
             
             var response = await _sender.Send(command);
             
-            var result = response.Select(d => new DocSearch.WebApi.Presentation.DTOs.DocumentDto
+            var newDocumentsDto = response.Select(d => new DocSearch.WebApi.Presentation.DTOs.DocumentDto
             {
                 Id = d.Id,
                 FileName = d.FileName,
                 SourcePath = d.SourcePath,
                 LastModifiedUtc = d.LastModifiedUtc
             }).ToList();
+            var dto = new { message = "Documents ingested successfully.", newDocuments = newDocumentsDto };
             
-            return Ok(new { message = "Documents ingested successfully.", newDocuments = result });
+            return Ok(dto);
         }
         catch (Exception ex)
         {
@@ -58,7 +59,7 @@ public class DocumentsController : ControllerBase
         var query = new RetrieveDocumentsQuery(question);
         var searchResults = await _sender.Send(query);
 
-        var result = searchResults.Select(result => new SearchResultDto
+        var dto = searchResults.Select(result => new SearchResultDto
         {
             ChunkId = result.Chunk.Id,
             DocumentId = result.Chunk.DocumentId,
@@ -67,6 +68,33 @@ public class DocumentsController : ControllerBase
             Rank = result.Rank
         }).ToList();
 
-        return Ok(result);
+        return Ok(dto);
+    }
+    
+    [HttpPost("ask")]
+    public async Task<IActionResult> Ask([FromBody] AskRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Question))
+        {
+            return BadRequest(new { error = "Question cannot be empty." });
+        }
+
+        var query = new AskQuestionQuery(request.Question);
+        var result = await _sender.Send(query);
+
+        var dto = new AskResponseDto
+        {
+            Answer = result.Answer,
+            Sources = result.Sources.Select(s => new SearchResultDto
+            {
+                ChunkId = s.Chunk.Id,
+                DocumentId = s.Chunk.DocumentId,
+                Content = s.Chunk.Content,
+                OrderIndex = s.Chunk.OrderIndex,
+                Rank = s.Rank
+            }).ToList()
+        };
+
+        return Ok(dto);
     }
 }

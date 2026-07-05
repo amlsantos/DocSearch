@@ -16,7 +16,6 @@ public static class Program
         var app = builder.Build();
         
         ApplyMigrations(app);
-        
         ConfigurePipeline(app);
         
         app.Run();
@@ -38,6 +37,13 @@ public static class Program
         // D. Add Application & Infrastructure Services (Dependency Injection)
         services.AddScoped<IDocumentReader, MarkdownDocumentReader>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
+        
+        services.AddSingleton<Google.GenAI.Client>(sp => 
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return new Google.GenAI.Client(apiKey: config["Gemini:ApiKey"]);
+        });
+        services.AddScoped<IQuestionAnswerer, LlmQuestionAnswerer>();
         
         // E. Add MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
