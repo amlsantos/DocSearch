@@ -30,4 +30,9 @@ public class Document
         var chunk = new DocumentChunk(this.Id, content.Trim(), _chunks.Count);
         _chunks.Add(chunk);
     }
+
+    public string Key()
+    {
+        return $"{FileName}_{LastModifiedUtc:yyyy-MM-dd HH:mm:ss}";
+    }
 }

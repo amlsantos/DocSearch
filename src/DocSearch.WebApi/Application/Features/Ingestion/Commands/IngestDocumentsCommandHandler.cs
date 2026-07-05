@@ -22,7 +22,7 @@ public class IngestDocumentsCommandHandler : IRequestHandler<IngestDocumentsComm
         // Step 1: Get documents that already exist in the database
         var existingDocs = await _documentRepository.GetAllDocumentsAsync();
         var existingKeys = existingDocs
-            .Select(d => $"{d.FileName}_{d.LastModifiedUtc:O}")
+            .Select(d => d.Key())
             .ToHashSet();
         
         // Step 2: Get all .md files from disk and filter only the NEW ones
@@ -32,13 +32,14 @@ public class IngestDocumentsCommandHandler : IRequestHandler<IngestDocumentsComm
             {
                 var fileName = Path.GetFileName(filePath);
                 var lastModified = File.GetLastWriteTimeUtc(filePath);
-                var key = $"{fileName}_{lastModified:O}";
-                return !existingKeys.Contains(key);
+                var tempDoc = new Document(fileName, filePath, lastModified);
+                return !existingKeys.Contains(tempDoc.Key());
             })
             .ToList();
         
         // Step 3: If there are no new files, we're done
-        if (!newFilePaths.Any()) return ingestedDocuments;
+        if (!newFilePaths.Any()) 
+            return ingestedDocuments;
         
         // Step 4 & 5: Read the new files one by one (streaming) and persist in batches
         var batch = new List<Document>();
