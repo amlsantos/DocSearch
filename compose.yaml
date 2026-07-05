@@ -4,6 +4,16 @@ services:
     build:
       context: .
       dockerfile: src/DocSearch.WebApi/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=DocSearchDb;Username=postgres;Password=mysecretpassword
+      - Gemini__ApiKey=AQ.Ab8RN6Lpalto_FEuCpXXkfEBayFoTnjyW05ZshAgFsgQdDZjzg
+    volumes:
+      - ./docs:/docs
+    depends_on:
+      - db
 
   db:
     image: postgres:16-alpine
