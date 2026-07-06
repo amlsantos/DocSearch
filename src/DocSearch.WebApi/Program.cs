@@ -23,6 +23,9 @@ public static class Program
 
     static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        // Load .env file from the current or parent directories
+        DotNetEnv.Env.TraversePath().Load();
+        
         // A. Add Controllers Support
         services.AddControllers();
     
@@ -47,6 +50,9 @@ public static class Program
         
         // E. Add MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        
+        // Add environment variables to the configuration builder so they override appsettings.json
+        ((IConfigurationBuilder)configuration).AddEnvironmentVariables();
     }
 
     static void ConfigurePipeline(WebApplication app)
