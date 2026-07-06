@@ -1,7 +1,7 @@
 using DocSearch.WebApi.Application.Common.Interfaces;
 using MediatR;
 
-namespace DocSearch.WebApi.Application.Features.Retrieval.Queries;
+namespace DocSearch.WebApi.Application.Features.Answer.Query;
 
 public class AskQuestionQueryHandler : IRequestHandler<AskQuestionQuery, AskQuestionResult>
 {
@@ -27,7 +27,7 @@ public class AskQuestionQueryHandler : IRequestHandler<AskQuestionQuery, AskQues
 
         var sources = await _repository.RetrieveChunksAsync(searchTerm, cancellationToken);
         
-        // Se não encontrarmos nenhum chunk, escusamos de gastar a API do Gemini
+        // If no chunks found, skip the AI call to save tokens
         if (!sources.Any())
         {
             return new AskQuestionResult 

@@ -1,6 +1,6 @@
 using DocSearch.WebApi.Domain.Entities;
 
-namespace DocSearch.WebApi.Application.Features.Retrieval.Queries;
+namespace DocSearch.WebApi.Application.Features.Answer.Query;
 
 public class AskQuestionResult
 {

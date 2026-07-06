@@ -1,5 +1,5 @@
+using DocSearch.WebApi.Application.Features.Answer.Query;
 using DocSearch.WebApi.Application.Features.Ingestion.Commands;
-using DocSearch.WebApi.Application.Features.Ingestion.Queries;
 using DocSearch.WebApi.Application.Features.Retrieval.Queries;
 using DocSearch.WebApi.Presentation.DTOs;
 using MediatR;
