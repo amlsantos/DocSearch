@@ -14,7 +14,22 @@ src/
     Domain/       ← Entities (Document, DocumentChunk)
     Infrastructure/ ← DB (PostgreSQL/EF Core) & Services
     Presentation/ ← REST Controllers (Swagger)
+tests/
+  DocSearch.Tests/ ← Unit tests
 ```
+
+### Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| .NET 10 | Web API framework |
+| PostgreSQL 16 | Database with native Full-Text Search |
+| Entity Framework Core 10 | ORM & migrations |
+| MediatR | CQRS pattern (Command/Query handlers) |
+| Google Gemini 2.5 Flash | LLM for RAG answer generation |
+| Docker & Docker Compose | Containerised deployment |
+| pgAdmin 4 | Database GUI |
+| Swagger / OpenAPI | API explorer |
 
 ---
 
@@ -23,8 +38,46 @@ src/
 ### Prerequisites
 
 - [Docker](https://www.docker.com/) & Docker Compose
+- [.NET 10 SDK](https://dotnet.microsoft.com/) (only if running locally outside Docker)
 
-### 1. Start the stack
+---
+
+### Step 1 — Place the `.env` File
+
+The project requires a **`.env` file in the root of the repository** (next to `compose.yaml`). This file contains the database credentials and the Gemini API key.
+
+> ⚠️ The `.env` file is included in `.gitignore` and is **not committed to the repository**. It will be provided to you separately.
+
+Place the `.env` file at the root:
+
+```
+DocSearch/
+├── .env              ← Place the provided .env file here
+├── compose.yaml
+├── docs/
+├── src/
+└── ...
+```
+
+The `.env` file contains the following variables:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=mysecretpassword
+POSTGRES_DB=DocSearchDb
+GEMINI_API_KEY=<your-gemini-api-key>
+PGADMIN_DEFAULT_EMAIL=admin@admin.com
+PGADMIN_DEFAULT_PASSWORD=admin
+
+ConnectionStrings__DefaultConnection=Host=localhost;Port=5434;Database=DocSearchDb;Username=postgres;Password=mysecretpassword
+Gemini__ApiKey=<your-gemini-api-key>
+```
+
+> **Note:** The `.env` file contains two sets of variables. The first set (`POSTGRES_USER`, `GEMINI_API_KEY`, etc.) is used by Docker Compose to configure the containers. The second set (`ConnectionStrings__DefaultConnection`, `Gemini__ApiKey`) is used by the .NET application when running locally via `dotnet run`.
+
+---
+
+### Step 2 — Start the Infrastructure (Docker Compose)
 
 From the **root** of the repository, run:
 
@@ -33,13 +86,34 @@ docker compose up --build
 ```
 
 This will build and start three services:
+
 | Service | Description | Port |
 |---|---|---|
 | `docsearch.webapi` | The .NET REST API | `8080` |
-| `db` | PostgreSQL 16 | `5434` |
+| `db` | PostgreSQL 16 | `5434` (mapped from internal `5432`) |
 | `pgadmin` | pgAdmin 4 (DB GUI) | `5050` |
 
 > The API automatically applies EF Core migrations on startup, so the database schema is created for you.
+
+Once you see output like `Now listening on: http://[::]:8080`, the application is ready.
+
+---
+
+### Running Locally (Alternative to Docker)
+
+If you prefer to run the API outside of Docker (e.g. for debugging), you still need the database running. Start **only** the database and pgAdmin:
+
+```bash
+docker compose up db pgadmin --build
+```
+
+Then, from the **root of the repository**, run:
+
+```bash
+dotnet run --project src/DocSearch.WebApi
+```
+
+The application will automatically load the `.env` file from the project root (via the `DotNetEnv` library, which traverses parent directories to find it). The connection string in the `.env` points to `localhost:5434`, which is the PostgreSQL port exposed by Docker Compose.
 
 ---
 
@@ -66,14 +140,14 @@ http://localhost:5050
 | Email | `admin@admin.com` |
 | Password | `admin` |
 
-#### Connecting to the PostgreSQL server in pgAdmin
+#### Connecting to the PostgreSQL Server in pgAdmin
 
 After logging in, add a new server with the following settings:
 
 | Field | Value |
 |---|---|
-| Host | `db` |
-| Port | `5432` |
+| Host | `db` (if accessing from inside Docker) or `localhost` (if from your machine) |
+| Port | `5432` (internal) or `5434` (external) |
 | Database | `DocSearchDb` |
 | Username | `postgres` |
 | Password | `mysecretpassword` |
@@ -118,7 +192,7 @@ curl -X POST http://localhost:8080/api/documents/ingest
 
 ### 2. Retrieve Document Chunks (Full-Text Search)
 
-Searches the database for document chunks that match the given query using PostgreSQL full-text search.
+Searches the database for document chunks that match the given query using PostgreSQL full-text search. Returns ranked results with relevance scores.
 
 ```
 GET /api/documents/retrieve?question={your question}
@@ -146,7 +220,7 @@ curl "http://localhost:8080/api/documents/retrieve?question=What+is+LanguageWire
 
 ### 3. Ask a Question (RAG / AI Answer)
 
-Retrieves the most relevant document chunks and passes them to the **Gemini AI model** to generate a grounded, natural language answer.
+Retrieves the most relevant document chunks and passes them to the **Gemini AI model** to generate a grounded, natural language answer. The response includes both the AI-generated answer and the source chunks it was based on.
 
 ```
 POST /api/documents/ask
@@ -193,29 +267,13 @@ Then call `POST /api/documents/ingest` to index the new files.
 
 ---
 
-## 🗄️ Database Connection String
-
-Used internally by the API (defined in `compose.yaml`):
-
-```
-Host=db;Port=5432;Database=DocSearchDb;Username=postgres;Password=mysecretpassword
-```
-
-For connecting from your local machine (e.g. via a SQL client or pgAdmin with `localhost`):
-
-```
-Host=localhost;Port=5434;Database=DocSearchDb;Username=postgres;Password=mysecretpassword
-```
-
----
-
 ## 🛑 Stopping the Stack
 
 ```bash
 docker compose down
 ```
 
-To also remove the persistent database volume:
+To also remove the persistent database volume (this will delete all ingested data):
 
 ```bash
 docker compose down -v
