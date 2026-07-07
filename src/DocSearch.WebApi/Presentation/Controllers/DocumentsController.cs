@@ -49,7 +49,7 @@ public class DocumentsController : ControllerBase
     }
     
     [HttpGet("retrieve")]
-    public async Task<IActionResult> RetrieveDocuments([FromBody] SearchRequestDto request)
+    public async Task<IActionResult> RetrieveDocuments([FromQuery] SearchRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.Question))
         {
