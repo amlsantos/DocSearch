@@ -2,7 +2,7 @@ using System;
 
 namespace DocSearch.WebApi.Presentation.DTOs;
 
-public class SearchResultDto
+public class DocumentsResponseDto
 {
     // A little subset of the Chunk
     public Guid ChunkId { get; set; }

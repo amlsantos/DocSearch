@@ -25,7 +25,7 @@ public class AskQuestionQueryHandlerTests
     {
         // Arrange
         _repositoryMock
-            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<(DocumentChunk Chunk, float Rank)>());
 
         var query = new AskQuestionQuery("What is LanguageWire?");
@@ -49,7 +49,7 @@ public class AskQuestionQueryHandlerTests
         var chunks = doc.Chunks.Select((c, i) => (Chunk: c, Rank: 0.5f - (i * 0.1f))).ToList();
 
         _repositoryMock
-            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(chunks);
 
         _answererMock
@@ -77,7 +77,7 @@ public class AskQuestionQueryHandlerTests
         var chunks = doc.Chunks.Select(c => (Chunk: c, Rank: 0.75f)).ToList();
 
         _repositoryMock
-            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.RetrieveChunksAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(chunks);
 
         _answererMock

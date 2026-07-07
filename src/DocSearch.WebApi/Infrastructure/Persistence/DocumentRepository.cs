@@ -24,7 +24,7 @@ public class DocumentRepository : IDocumentRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
     
-    public async Task<IList<(DocumentChunk Chunk, float Rank)>> RetrieveChunksAsync(string searchTerm, CancellationToken cancellationToken = default)
+    public async Task<IList<(DocumentChunk Chunk, float Rank)>> RetrieveChunksAsync(string searchTerm, int limit = 5, CancellationToken cancellationToken = default)
     {
         var results = await _context.DocumentChunks
             .Where(c => EF.Property<NpgsqlTypes.NpgsqlTsVector>(c, "SearchVector")
@@ -36,7 +36,7 @@ public class DocumentRepository : IDocumentRepository
                         .Rank(EF.Functions.WebSearchToTsQuery("english", searchTerm))
             })
             .OrderByDescending(x => x.Rank)
-            .Take(10)
+            .Take(limit)
             .ToListAsync(cancellationToken);
 
         // Convert the anonymous type to the required Tuple type

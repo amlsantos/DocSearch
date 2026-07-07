@@ -25,7 +25,7 @@ public class AskQuestionQueryHandler : IRequestHandler<AskQuestionQuery, AskQues
         // If the question only had small words, fallback to the original
         var searchTerm = string.IsNullOrWhiteSpace(searchKeywords) ? request.Question : searchKeywords;
 
-        var sources = await _repository.RetrieveChunksAsync(searchTerm, cancellationToken);
+        var sources = await _repository.RetrieveChunksAsync(searchTerm, request.Limit, cancellationToken);
         
         // If no chunks found, skip the AI call to save tokens
         if (!sources.Any())

@@ -31,6 +31,6 @@ public class RetrieveDocumentsQueryHandler : IRequestHandler<RetrieveDocumentsQu
             
         var searchTerm = string.IsNullOrWhiteSpace(searchKeywords) ? request.Term : searchKeywords;
 
-        return await _repository.RetrieveChunksAsync(searchTerm, cancellationToken);
+        return await _repository.RetrieveChunksAsync(searchTerm, request.Limit, cancellationToken);
     }
 }

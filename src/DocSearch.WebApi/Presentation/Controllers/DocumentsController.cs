@@ -49,17 +49,17 @@ public class DocumentsController : ControllerBase
     }
     
     [HttpGet("retrieve")]
-    public async Task<IActionResult> RetrieveDocuments([FromQuery] string question)
+    public async Task<IActionResult> RetrieveDocuments([FromBody] SearchRequestDto request)
     {
-        if (string.IsNullOrWhiteSpace(question))
+        if (string.IsNullOrWhiteSpace(request.Question))
         {
             return BadRequest(new { error = "Search term 'q' cannot be empty." });
         }
 
-        var query = new RetrieveDocumentsQuery(question);
+        var query = new RetrieveDocumentsQuery(request.Question, request.Limit);
         var searchResults = await _sender.Send(query);
 
-        var dto = searchResults.Select(result => new SearchResultDto
+        var dto = searchResults.Select(result => new DocumentsResponseDto
         {
             ChunkId = result.Chunk.Id,
             DocumentId = result.Chunk.DocumentId,
@@ -72,20 +72,20 @@ public class DocumentsController : ControllerBase
     }
     
     [HttpPost("ask")]
-    public async Task<IActionResult> Ask([FromBody] AskRequestDto request)
+    public async Task<IActionResult> Ask([FromBody] SearchRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.Question))
         {
             return BadRequest(new { error = "Question cannot be empty." });
         }
 
-        var query = new AskQuestionQuery(request.Question);
+        var query = new AskQuestionQuery(request.Question, request.Limit);
         var result = await _sender.Send(query);
 
-        var dto = new AskResponseDto
+        var dto = new SearchResponseDto
         {
             Answer = result.Answer,
-            Sources = result.Sources.Select(s => new SearchResultDto
+            Sources = result.Sources.Select(s => new DocumentsResponseDto
             {
                 ChunkId = s.Chunk.Id,
                 DocumentId = s.Chunk.DocumentId,
