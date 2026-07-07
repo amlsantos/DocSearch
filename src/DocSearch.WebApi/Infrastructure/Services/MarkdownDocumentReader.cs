@@ -17,10 +17,10 @@ public class MarkdownDocumentReader : IDocumentReader
             var content = await File.ReadAllTextAsync(filePath, cancellationToken);
             
             // Chunking strategy: Split the text by double newlines to separate paragraphs/sections
-            var chunks = content.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var chunk in chunks)
+            var paragraphChunks = content.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var paragraph in paragraphChunks)
             {
-                var trimmedChunk = chunk.Trim();
+                var trimmedChunk = paragraph.Trim();
                 if (!string.IsNullOrEmpty(trimmedChunk))
                 {
                     document.AddChunk(trimmedChunk);
