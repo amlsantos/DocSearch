@@ -25,26 +25,25 @@ public class AskQuestionQueryHandler : IRequestHandler<AskQuestionQuery, AskQues
         // If the question only had small words, fallback to the original
         var searchTerm = string.IsNullOrWhiteSpace(searchKeywords) ? request.Question : searchKeywords;
 
-        var sources = await _repository.RetrieveChunksAsync(searchTerm, request.Limit, cancellationToken);
+        var existingChunks = await _repository.RetrieveChunksAsync(searchTerm, request.Limit, cancellationToken);
         
         // If no chunks found, skip the AI call to save tokens
-        if (!sources.Any())
+        if (!existingChunks.Any())
         {
             return new AskQuestionResult 
             {
                 Answer = "I couldn't find any relevant information in the knowledge base to answer your question.",
-                Sources = sources
+                Sources = existingChunks
             };
         }
 
-        var contextChunks = sources.Select(s => s.Chunk.Content);
-
-        var answer = await _answerer.AnswerAsync(request.Question, contextChunks, cancellationToken);
+        var chunks = existingChunks.Select(s => s.Chunk.Content);
+        var answer = await _answerer.AnswerAsync(request.Question, chunks, cancellationToken);
 
         return new AskQuestionResult
         {
             Answer = answer,
-            Sources = sources
+            Sources = existingChunks
         };
     }
 }
