@@ -1,5 +1,8 @@
 # DocSearch
 
+[![CI](https://github.com/amlsantos/DocSearch/actions/workflows/ci.yml/badge.svg)](https://github.com/amlsantos/DocSearch/actions/workflows/ci.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/rewind782/docsearch.svg)](https://hub.docker.com/r/rewind782/docsearch)
+[![Docker Image Size](https://img.shields.io/docker/image-size/rewind782/docsearch/latest)](https://hub.docker.com/r/rewind782/docsearch)
 DocSearch is a .NET Web API that enables **semantic document search** over a collection of Markdown files. It ingests `.md` files from a local folder into a PostgreSQL database (using full-text search vectors), and exposes endpoints to **retrieve** relevant chunks and **ask questions** powered by the Gemini AI model (RAG — Retrieval-Augmented Generation).
 
 ---
