@@ -36,11 +36,14 @@ public class AppDbContext : DbContext
             
             // Full-Text Search Vector configured as a Shadow Property
             // This keeps the Domain layer pure (no Npgsql dependencies in DocumentChunk.cs)
-            entity.Property<NpgsqlTypes.NpgsqlTsVector>("SearchVector")
-                .HasComputedColumnSql("to_tsvector('english', \"Content\")", stored: true);
+            if (Database.IsNpgsql())
+            {
+                entity.Property<NpgsqlTypes.NpgsqlTsVector>("SearchVector")
+                    .HasComputedColumnSql("to_tsvector('english', \"Content\")", stored: true);
 
-            entity.HasIndex("SearchVector")
-                .HasMethod("GIN");
+                entity.HasIndex("SearchVector")
+                    .HasMethod("GIN");
+            }
         });
     }
 }

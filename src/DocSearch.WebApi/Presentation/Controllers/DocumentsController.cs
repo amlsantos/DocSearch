@@ -47,6 +47,23 @@ public class DocumentsController : ControllerBase
             return StatusCode(500, new { error = "Failed to ingest documents.", details = ex.Message });
         }
     }
+
+    [HttpGet("docs")]
+    public async Task<IActionResult> GetAllDocuments()
+    {
+        var query = new GetAllDocumentsQuery();
+        var documents = await _sender.Send(query);
+
+        var dto = documents.Select(d => new DocSearch.WebApi.Presentation.DTOs.DocumentDto
+        {
+            Id = d.Id,
+            FileName = d.FileName,
+            SourcePath = d.SourcePath,
+            LastModifiedUtc = d.LastModifiedUtc
+        }).ToList();
+
+        return Ok(dto);
+    }
     
     [HttpGet("retrieve")]
     public async Task<IActionResult> RetrieveDocuments([FromQuery] SearchRequestDto request)
@@ -56,7 +73,7 @@ public class DocumentsController : ControllerBase
             return BadRequest(new { error = "Search term 'q' cannot be empty." });
         }
 
-        var query = new RetrieveDocumentsQuery(request.Question, request.Limit);
+        var query = new GetDocumentQuery(request.Question, request.Limit);
         var searchResults = await _sender.Send(query);
 
         var dto = searchResults.Select(result => new DocumentsResponseDto

@@ -7,16 +7,16 @@ using MediatR;
 
 namespace DocSearch.WebApi.Application.Features.Retrieval.Queries;
 
-public class RetrieveDocumentsQueryHandler : IRequestHandler<RetrieveDocumentsQuery, IList<(DocumentChunk Chunk, float Rank)>>
+public class GetDocumentQueryHandler : IRequestHandler<GetDocumentQuery, IList<(DocumentChunk Chunk, float Rank)>>
 {
     private readonly IDocumentRepository _repository;
 
-    public RetrieveDocumentsQueryHandler(IDocumentRepository repository)
+    public GetDocumentQueryHandler(IDocumentRepository repository)
     {
         _repository = repository;
     }
 
-    public async Task<IList<(DocumentChunk Chunk, float Rank)>> Handle(RetrieveDocumentsQuery request, CancellationToken cancellationToken)
+    public async Task<IList<(DocumentChunk Chunk, float Rank)>> Handle(GetDocumentQuery request, CancellationToken cancellationToken)
     {
         // Se a string de pesquisa estiver vazia, devolvemos lista vazia
         if (string.IsNullOrWhiteSpace(request.Term))

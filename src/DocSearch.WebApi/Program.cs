@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DocSearch.WebApi;
 
-public static class Program
+public partial class Program
 {
     public static void Main(string[] args)
     {
@@ -70,6 +70,9 @@ public static class Program
     
     static void ApplyMigrations(WebApplication app)
     {
+        if (app.Environment.EnvironmentName == "Testing") 
+            return;
+
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         dbContext.Database.Migrate();
