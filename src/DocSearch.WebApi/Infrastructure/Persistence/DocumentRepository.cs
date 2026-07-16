@@ -14,9 +14,7 @@ public class DocumentRepository : IDocumentRepository
     }
     
     public async Task<IList<Document>> GetAllDocumentsAsync()
-    {
-        throw new InvalidCastException();
-        
+    {        
         return await _context.Documents.ToListAsync();
     }
 
