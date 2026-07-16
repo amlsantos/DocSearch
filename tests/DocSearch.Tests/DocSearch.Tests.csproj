@@ -22,4 +22,8 @@
         <ProjectReference Include="..\..\src\DocSearch.WebApi\DocSearch.WebApi.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Presentation\" />
+    </ItemGroup>
+
 </Project>

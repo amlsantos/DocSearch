@@ -1,16 +1,14 @@
 using System.Net;
-using Xunit;
 using DocSearch.WebApi;
 using DocSearch.WebApi.Infrastructure.Persistence;
-using DocSearch.WebApi.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Xunit;
 
-namespace DocSearch.Tests;
+namespace DocSearch.Tests.Presentation;
 
 public class DocumentsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
